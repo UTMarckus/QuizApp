@@ -7,4 +7,8 @@
     <string name="start_quiz">Start Quiz</string>
     <string name="image_flag_description">Image Flag</string>
     <string name="check_button">Check</string>
+    <string name="result_tv_text">Result</string>
+    <string name="trophy_image_text">Trophy Image</string>
+    <string name="congratulations_text">Hey, Congratulations!</string>
+    <string name="finish_txt">Finish</string>
 </resources>
