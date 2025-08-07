@@ -18,8 +18,10 @@ class QuestionsActivity : AppCompatActivity(), View.OnClickListener {
 
     private var questionsList: MutableList<Question>? = null
 
-    private val currentPosition = 1
+    private var currentQuestion: Question? = null
+    private var questionsCounter = 0
     private var selectedOption = 0
+    private var isAnswered = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -31,28 +33,56 @@ class QuestionsActivity : AppCompatActivity(), View.OnClickListener {
             optionTwoTextView.setOnClickListener(this@QuestionsActivity)
             optionThreeTextView.setOnClickListener(this@QuestionsActivity)
             optionFourTextView.setOnClickListener(this@QuestionsActivity)
+            checkButton.setOnClickListener(this@QuestionsActivity)
         }
 
         questionsList = Constants.getQuestions()
 
-        setQuestions()
+        showNextQuestion()
     }
 
-    private fun setQuestions() {
-        val question = questionsList?.get(currentPosition - 1)
+    private fun showNextQuestion() {
+        resetOptionsView()
+
+        currentQuestion = questionsList?.get(questionsCounter)
 
         binding.run {
-            imageFlag.setImageResource(question?.image ?: R.drawable.ic_launcher_foreground)
-            progressBar.progress = currentPosition
-            progressTextView.text = "$currentPosition/${binding.progressBar.max}"
-            questionTextView.text = question?.question
-            optionOneTextView.text = question?.option1
-            optionTwoTextView.text = question?.option2
-            optionThreeTextView.text = question?.option3
-            optionFourTextView.text = question?.option4
+            imageFlag.setImageResource(currentQuestion?.image ?: R.drawable.ic_launcher_foreground)
+            progressBar.progress = questionsCounter
+            progressTextView.text = "${questionsCounter + 1}/${binding.progressBar.max}"
+            questionTextView.text = currentQuestion?.question
+            optionOneTextView.text = currentQuestion?.option1
+            optionTwoTextView.text = currentQuestion?.option2
+            optionThreeTextView.text = currentQuestion?.option3
+            optionFourTextView.text = currentQuestion?.option4
 
-            checkButton.text = if (currentPosition == questionsList?.size) "Finish" else "Check"
+            checkButton.text = if (questionsCounter == questionsList?.size) "Finish" else "Check"
+
+            questionsCounter++
+            isAnswered = false
         }
+    }
+
+    private fun checkAnswer() {
+        isAnswered = true
+
+        if(currentQuestion?.answer != selectedOption) {
+            setWrongAnswerBg(when(selectedOption) {
+                1 -> binding.optionOneTextView
+                2 -> binding.optionTwoTextView
+                3 -> binding.optionThreeTextView
+                else -> binding.optionFourTextView
+            })
+        }
+
+        setCorrectAnswerBg(when(currentQuestion?.answer) {
+            1 -> binding.optionOneTextView
+            2 -> binding.optionTwoTextView
+            3 -> binding.optionThreeTextView
+            else -> binding.optionFourTextView
+        })
+
+        binding.checkButton.text = "Next"
     }
 
     private fun resetOptionsView() {
@@ -66,6 +96,7 @@ class QuestionsActivity : AppCompatActivity(), View.OnClickListener {
         }
     }
 
+
     private fun setOptionSelected(textView: TextView, selectOptionNumber: Int) {
         resetOptionsView()
 
@@ -77,6 +108,14 @@ class QuestionsActivity : AppCompatActivity(), View.OnClickListener {
         )
 
         selectedOption = selectOptionNumber
+    }
+
+    private fun setCorrectAnswerBg(view: TextView) {
+        view.background = ContextCompat.getDrawable(this, R.drawable.correct_option_border_bg)
+    }
+
+    private fun setWrongAnswerBg(view: TextView) {
+        view.background = ContextCompat.getDrawable(this, R.drawable.wrong_option_border_bg)
     }
 
     private fun getOptionsList(): List<TextView> = listOf(
@@ -92,6 +131,14 @@ class QuestionsActivity : AppCompatActivity(), View.OnClickListener {
             R.id.option_two_text_view -> setOptionSelected(binding.optionTwoTextView, 2)
             R.id.option_three_text_view -> setOptionSelected(binding.optionThreeTextView, 3)
             R.id.option_four_text_view -> setOptionSelected(binding.optionFourTextView, 4)
+            R.id.check_button -> {
+                if (isAnswered) {
+                    showNextQuestion()
+                } else {
+                    checkAnswer()
+                }
+                selectedOption = 0
+            }
         }
     }
 }
