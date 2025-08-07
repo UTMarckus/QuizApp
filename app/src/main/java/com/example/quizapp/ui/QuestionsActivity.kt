@@ -1,5 +1,6 @@
 package com.example.quizapp.ui
 
+import android.content.Intent
 import android.graphics.Typeface
 import android.os.Bundle
 import android.view.View
@@ -21,6 +22,7 @@ class QuestionsActivity : AppCompatActivity(), View.OnClickListener {
     private var currentQuestion: Question? = null
     private var questionsCounter = 0
     private var selectedOption = 0
+    private var score = 0
     private var isAnswered = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -42,45 +44,66 @@ class QuestionsActivity : AppCompatActivity(), View.OnClickListener {
     }
 
     private fun showNextQuestion() {
-        resetOptionsView()
 
-        currentQuestion = questionsList?.get(questionsCounter)
+        if (questionsCounter < (questionsList?.size ?: 0)) {
+            resetOptionsView()
 
-        binding.run {
-            imageFlag.setImageResource(currentQuestion?.image ?: R.drawable.ic_launcher_foreground)
-            progressBar.progress = questionsCounter
-            progressTextView.text = "${questionsCounter + 1}/${binding.progressBar.max}"
-            questionTextView.text = currentQuestion?.question
-            optionOneTextView.text = currentQuestion?.option1
-            optionTwoTextView.text = currentQuestion?.option2
-            optionThreeTextView.text = currentQuestion?.option3
-            optionFourTextView.text = currentQuestion?.option4
+            currentQuestion = questionsList?.get(questionsCounter)
 
-            checkButton.text = if (questionsCounter == questionsList?.size) "Finish" else "Check"
+            binding.run {
+                imageFlag.setImageResource(
+                    currentQuestion?.image ?: R.drawable.ic_launcher_foreground
+                )
+                progressBar.progress = questionsCounter
+                progressTextView.text = "${questionsCounter + 1}/${binding.progressBar.max}"
+                questionTextView.text = currentQuestion?.question
+                optionOneTextView.text = currentQuestion?.option1
+                optionTwoTextView.text = currentQuestion?.option2
+                optionThreeTextView.text = currentQuestion?.option3
+                optionFourTextView.text = currentQuestion?.option4
 
-            questionsCounter++
-            isAnswered = false
+                checkButton.text =
+                    if (questionsCounter == questionsList?.size) "Finish" else "Check"
+
+                questionsCounter++
+                isAnswered = false
+            }
+
+        } else {
+            Intent(this, ResultActivity::class.java).also {
+                if(intent.hasExtra(Constants.USER_NAME)) {
+                    it.putExtra(Constants.USER_NAME, intent.getStringExtra(Constants.USER_NAME))
+                }
+                it.putExtra(Constants.SCORE, score)
+                it.putExtra(Constants.TOTAL_QUESTIONS, questionsList?.size)
+                startActivity(it)
+            }
         }
+
     }
 
     private fun checkAnswer() {
         isAnswered = true
 
-        if(currentQuestion?.answer != selectedOption) {
-            setWrongAnswerBg(when(selectedOption) {
+        if (currentQuestion?.answer != selectedOption) {
+            setWrongAnswerBg(
+                when (selectedOption) {
+                    1 -> binding.optionOneTextView
+                    2 -> binding.optionTwoTextView
+                    3 -> binding.optionThreeTextView
+                    else -> binding.optionFourTextView
+                }
+            )
+        } else score++
+
+        setCorrectAnswerBg(
+            when (currentQuestion?.answer) {
                 1 -> binding.optionOneTextView
                 2 -> binding.optionTwoTextView
                 3 -> binding.optionThreeTextView
                 else -> binding.optionFourTextView
-            })
-        }
-
-        setCorrectAnswerBg(when(currentQuestion?.answer) {
-            1 -> binding.optionOneTextView
-            2 -> binding.optionTwoTextView
-            3 -> binding.optionThreeTextView
-            else -> binding.optionFourTextView
-        })
+            }
+        )
 
         binding.checkButton.text = "Next"
     }
